@@ -6,8 +6,8 @@ import serialport
 from threading import Thread  # To run serial logging in a separate thread
 
 window = tk.Tk()
-width = 1250
-height = 550
+width = 200
+height = 200
 window.geometry("%dx%d" % (width, height))
 window.config(bg="gray9")
 window.title("Serial Logger Screen")
@@ -47,20 +47,39 @@ def read_serial():
         if start_idx != -1:
             data_str = data_str[start_idx:]
             # print the string on the Tkinter window
-            text_box.insert('end', data_str + '\n')
             # split the data string by comma separator and write the resulting values to the CSV file
             csv_writer.writerow(data_str.split(','))
-        text_box.see('end')
+
     window.after(10, read_serial)
 
 # Close the CSV file when the tkinter window is closed
 def on_closing():
     window.destroy()
 
-window.protocol("WM_DELETE_WINDOW", on_closing)
-window.after(10, read_serial)
-
 def start_logging():
     thread = Thread(target=read_serial)
     thread.daemon = True  # The thread will close when the main GUI is closed
     thread.start()
+
+def export_csv():
+    # Get the contents of the text_box
+    text_content = text_box.get("1.0", "end-1c")
+    # Split the text content into lines
+    lines = text_content.split("\n")
+    # Write the lines to the CSV file
+    with open(file_path, 'w', newline='') as csv_file:
+        csv_writer = csv.writer(csv_file)
+        for line in lines:
+            csv_writer.writerow(line.split(','))
+
+# Create and configure the buttons
+
+
+label = tk.Label(window, text="Exporting CSV")
+label.place(x=30,y=30)
+
+window.protocol("WM_DELETE_WINDOW", on_closing)
+window.after(10, read_serial)
+
+window.mainloop()
+
